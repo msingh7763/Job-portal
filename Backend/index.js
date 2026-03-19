@@ -1,52 +1,3 @@
-// import express from 'express';
-// import cookieParser from 'cookie-parser';
-// import cors from 'cors';
-// import dotenv from 'dotenv';
-// import connectDB from './utils/db.js';
-// import userRoute from './routes/user.routes.js';
-
-// dotenv.config();
-// const app = express();
-
-// // MIDDLEWARE
-// app.use(express.json());
-// app.use(express.urlencoded({ extended: true }));
-// app.use(cookieParser());
-
-// const corsOptions = {
-//   origin: ['http://localhost:5121'],
-//   credentials: true,
-// };
-// app.use(cors(corsOptions));
-
-// // ROOT ROUTE
-// app.get('/', (req, res) => {
-//   return res.status(200).json({
-//     message: 'Welcome to new project',
-//     timestamp: new Date().toISOString(),
-//     success: true,
-//   });
-// });
-
-// // API ROUTES
-// app.use('/api/users', userRoute);
-
-// // CONNECT DB AND START SERVER
-// const PORT = process.env.PORT || 5001;
-
-// const startServer = async () => {
-//   try {
-//     await connectDB(); // ensure DB connects first
-//     app.listen(PORT, () => {
-//       console.log(`Server is running on port ${PORT}`);
-//     });
-//   } catch (err) {
-//     console.error('Failed to connect to DB:', err.message);
-//     process.exit(1); // stop server if DB connection fails
-//   }
-// };
-
-// startServer();
 import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -55,6 +6,7 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import http from "http";
 import { Server } from "socket.io";
+
 import connectDB from "./utils/db.js";
 import userRoute from "./routes/user.routes.js";
 import companyRoute from "./routes/company.route.js";
@@ -64,83 +16,90 @@ import { notFound, errorHandler } from "./middleware/errorHandler.js";
 import { Company } from "./models/company.model.js";
 
 dotenv.config();
+
 const app = express();
 const server = http.createServer(app);
+
+/* ================= SOCKET.IO ================= */
+const allowedOrigins = (
+  process.env.CORS_ORIGINS ||
+  "http://localhost:5173,http://localhost:5174,http://localhost:5175,https://job-portal-pearl-omega.vercel.app"
+)
+  .split(",")
+  .map((origin) => origin.trim());
+
 const io = new Server(server, {
   cors: {
-    origin: [
-      "http://localhost:5175",
-      "http://localhost:5173",
-      "http://localhost:5174",
-    ],
+    origin: allowedOrigins,
     credentials: true,
   },
 });
 
-// attach io for real-time notifications
 app.set("io", io);
 
-// CORE MIDDLEWARE
+/* ================= MIDDLEWARE ================= */
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// SECURITY
+/* ================= SECURITY ================= */
 app.use(helmet());
 app.set("trust proxy", 1);
+
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
+  windowMs: 15 * 60 * 1000, // 15 mins
   max: 100,
 });
 app.use(limiter);
 
-// CORS – allow your Vite frontends
-const allowedOrigins = (process.env.CORS_ORIGINS || "http://localhost:5175,http://localhost:5173,http://localhost:5174")
-  .split(",")
-  .map((origin) => origin.trim());
-
+/* ================= CORS ================= */
 app.use(
   cors({
-    origin: (origin, callback) => {
+    origin: function (origin, callback) {
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(new Error("CORS not allowed"));
+        console.error("Blocked by CORS:", origin);
+        callback(new Error("Not allowed by CORS"));
       }
     },
     credentials: true,
   })
 );
 
-// HEALTH CHECK / ROOT
+/* ================= ROUTES ================= */
+
+// Health check
 app.get("/", (req, res) => {
   res.status(200).json({
-    message: "Job Portal backend is running",
-    timestamp: new Date().toISOString(),
+    message: "Job Portal backend is running 🚀",
     success: true,
+    timestamp: new Date().toISOString(),
   });
 });
 
-// API ROUTES
+// API routes
 app.use("/api/users", userRoute);
 app.use("/api/company", companyRoute);
 app.use("/api/job", jobRoute);
 app.use("/api/application", applicationRoute);
 
-// GLOBAL 404 + ERROR HANDLING
+/* ================= ERROR HANDLING ================= */
 app.use(notFound);
 app.use(errorHandler);
 
-// SIMPLE SOCKET.IO SETUP
+/* ================= SOCKET CONNECTION ================= */
 io.on("connection", (socket) => {
-  console.log("Socket connected:", socket.id);
+  console.log("🔌 Socket connected:", socket.id);
+
   socket.on("disconnect", () => {
-    console.log("Socket disconnected:", socket.id);
+    console.log("❌ Socket disconnected:", socket.id);
   });
 });
 
+/* ================= GLOBAL ERROR HANDLING ================= */
 process.on("unhandledRejection", (reason, promise) => {
-  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+  console.error("Unhandled Rejection:", reason);
 });
 
 process.on("uncaughtException", (error) => {
@@ -148,32 +107,31 @@ process.on("uncaughtException", (error) => {
   process.exit(1);
 });
 
-// START SERVER AFTER DB CONNECTS
+/* ================= START SERVER ================= */
 const PORT = process.env.PORT || 5001;
 
 const startServer = async () => {
   try {
     await connectDB();
+    console.log("✅ MongoDB connected");
 
-    // If the old global unique index on `name` exists, drop it.
-    // We now enforce uniqueness per recruiter (userId + name).
+    // Fix old index issue
     try {
       await Company.collection.dropIndex("name_1");
-      console.log("Dropped old Company name unique index (name_1)");
+      console.log("🧹 Dropped old index (name_1)");
     } catch (err) {
       if (err?.codeName !== "IndexNotFound") {
-        console.warn("Could not drop old company name index:", err.message || err);
+        console.warn("Index drop warning:", err.message);
       }
     }
 
-    // Ensure schema indexes are in sync (creates compound userId+name unique index)
     await Company.syncIndexes();
 
     server.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
+      console.log(`🚀 Server running on port ${PORT}`);
     });
   } catch (error) {
-    console.error("Failed to connect to DB:", error.message);
+    console.error("❌ DB Connection Failed:", error.message);
     process.exit(1);
   }
 };
