@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 import api from "@/utils/api";
 import { setUser } from "@/redux/authSlice";
+import { persistor } from "@/redux/store"; // Import persistor to clear persisted state
 
 const Navbar = () => {
   const { user } = useSelector((store) => store.auth);
@@ -31,8 +32,16 @@ const Navbar = () => {
     try {
       const res = await api.post("/api/users/logout");
       if (res && res.data && res.data.success) {
+        // Clear user from Redux
         dispatch(setUser(null));
+        
+        // Clear persisted state from localStorage
+        await persistor.purge();
+        
+        // Navigate to home
         navigate("/");
+        
+        // Show success message
         toast.success(res.data.message);
       } else {
         console.error("Error logging out:", res.data);
