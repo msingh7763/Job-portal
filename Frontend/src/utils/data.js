@@ -1,5 +1,7 @@
 // src/utils/data.js
-export const USER_API_ENDPOINT = "http://localhost:5001/api/users";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
 
-export const JOB_API_ENDPOINT = "http://localhost:5001/api/job";
-export const APPLICATION_API_ENDPOINT = "http://localhost:5011/api/application";
+export const USER_API_ENDPOINT = `${API_BASE_URL}/api/users`;
+export const JOB_API_ENDPOINT = `${API_BASE_URL}/api/job`;
+export const COMPANY_API_ENDPOINT = `${API_BASE_URL}/api/company`;
+export const APPLICATION_API_ENDPOINT = `${API_BASE_URL}/api/application`;

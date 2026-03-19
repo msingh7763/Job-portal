@@ -1,0 +1,7 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="256" height="256" rx="32" fill="#1F2937"/>
+  <rect x="32" y="32" width="192" height="192" rx="24" fill="#111827"/>
+  <circle cx="128" cy="104" r="40" fill="#4F46E5"/>
+  <path d="M96 172C96 152.059 112.059 136 132 136H160V168H132C124.268 168 118 174.268 118 182V196H96V172Z" fill="#A5B4FC"/>
+  <text x="128" y="224" text-anchor="middle" fill="#E0E7FF" font-size="32" font-family="system-ui, sans-serif" font-weight="600">Co</text>
+</svg>

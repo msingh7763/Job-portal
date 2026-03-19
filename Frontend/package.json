@@ -24,7 +24,6 @@
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.9.3",
     "redux-persist": "^6.0.0",
-    "router-dom": "^3.0.3",
     "sonner": "^2.0.7"
   },
   "devDependencies": {
@@ -33,6 +32,7 @@
     "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^5.0.4",
     "autoprefixer": "^10.4.21",
+    "baseline-browser-mapping": "^2.10.0",
     "eslint": "^9.36.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.22",

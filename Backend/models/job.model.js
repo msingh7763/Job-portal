@@ -15,9 +15,11 @@ const jobSchema = new mongoose.Schema(
         type: String,
       },
     ],
+    // keep salary as string for now, but index for filtering/sorting
     salary: {
       type: String,
       required: true,
+      index: true,
     },
     // experienceLevel: {
     //   type: Number,
@@ -26,10 +28,12 @@ const jobSchema = new mongoose.Schema(
     location: {
       type: String,
       required: true,
+      index: true,
     },
     jobType: {
       type: String,
       required: true,
+      index: true,
     },
     experience: {
       type: String,

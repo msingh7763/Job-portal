@@ -1,78 +1,151 @@
-import React from "react";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bookmark } from "lucide-react";
+import api from "@/utils/api";
+import { useSelector, useDispatch } from "react-redux";
+import { setUser } from "@/redux/authSlice";
+import { formatSalary } from "@/utils/formatSalary";
 
 const Job1 = ({ job }) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { user } = useSelector((store) => store.auth);
+  const [logoSrc, setLogoSrc] = useState(job?.company?.logo || "/default-company.svg");
 
-  const daysAgoFunction = (mongodbTime) => {
-    const createdAt = new Date(mongodbTime);
-    const currentTime = new Date();
-    const timeDifference = currentTime - createdAt;
-    return Math.floor(timeDifference / (1000 * 24 * 60 * 60));
-  };
+  useEffect(() => {
+    setLogoSrc(job?.company?.logo || "/default-company.svg");
+  }, [job?.company?.logo]);
+
+  const isSaved = useMemo(() => {
+    if (!user || !user.savedJobs) return false;
+    return user.savedJobs.some((id) => id === job._id);
+  }, [user, job?._id]);
+
+  const formattedMatch = typeof job.matchScore === "number" ? `${job.matchScore}%` : "—";
+
+  const handleToggleSave = useCallback(
+    async (e) => {
+      e.stopPropagation();
+      if (!user) {
+        navigate("/login");
+        return;
+      }
+      try {
+        const res = await api.post("/api/users/saved/toggle", { jobId: job._id });
+        if (res.data.success) {
+          // merge savedJobs into auth.user
+          dispatch(
+            setUser({
+              ...user,
+              savedJobs: res.data.savedJobs,
+            })
+          );
+        }
+      } catch (error) {
+        console.error("Error toggling saved job", error);
+      }
+    },
+    [job._id, user, dispatch, navigate]
+  );
 
   return (
-    <div className="p-5 rounded-md shadow-xl bg-white border border-gray-100">
-      {/* Top Row */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500">
-          {daysAgoFunction(job?.createdAt) === 0
-            ? "Today"
-            : `${daysAgoFunction(job?.createdAt)} days ago`}
-        </p>
-        <button className="border border-gray-300 p-2 rounded-full hover:bg-gray-100">
-          <Bookmark />
+    <div className="card-surface p-5 rounded-2xl border border-slate-200 shadow-lg shadow-slate-200/40 h-full flex flex-col">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center w-12 h-12 rounded-2xl border border-slate-200 bg-slate-50 overflow-hidden">
+            <img
+              src={logoSrc}
+              alt={job?.company?.name || "Company logo"}
+              onError={() => setLogoSrc("/default-company.svg")}
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div>
+            <h1 className="text-sm sm:text-base font-semibold text-slate-100">
+              {job?.company?.name || "Unknown Company"}
+            </h1>
+            <p className="text-xs text-slate-500">{job.location || "Remote"}</p>
+          </div>
+        </div>
+
+        <button
+          onClick={handleToggleSave}
+          aria-label={isSaved ? "Unsave job" : "Save job"}
+          className={`flex items-center justify-center w-10 h-10 rounded-full border transition ${
+            isSaved
+              ? "border-purple-500 bg-purple-50 text-purple-700"
+              : "border-slate-700 bg-slate-800 text-slate-100 hover:bg-slate-700"
+          }`}
+        >
+          <Bookmark className={isSaved ? "fill-purple-500" : ""} />
         </button>
       </div>
 
-      {/* Company Info */}
-      <div className="flex items-center gap-3 my-2">
-        <div className="w-12 h-12 border border-gray-300 rounded-full overflow-hidden flex items-center justify-center">
-          <img
-            src={job?.company?.logo}
-            alt={job?.company?.name}
-            className="w-full h-full object-cover"
-          />
+      <div className="mt-4 flex-1">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h2 className="text-base font-semibold text-slate-100">{job.title}</h2>
+            <p className="text-xs sm:text-sm text-slate-500 line-clamp-2 mt-1">
+              {job?.description}
+            </p>
+          </div>
+
+          {typeof job.matchScore === "number" && user && (
+            <span className="flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] sm:text-xs font-semibold">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+              {formattedMatch}
+            </span>
+          )}
         </div>
-        <div>
-          <h1 className="font-medium text-lg">{job?.company?.name}</h1>
-          <p className="text-sm text-gray-500">India</p>
+
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Badge label={job.jobType} tone="indigo" />
+          <Badge label={formatSalary(job.salary)} tone="amber" />
+          <Badge label={job.experience} tone="emerald" />
+          {job.requirements?.slice(0, 3).map((req) => (
+            <Badge key={req} label={req} tone="slate" />
+          ))}
         </div>
       </div>
 
-      {/* Job Title & Description */}
-      <div>
-        <h1 className="font-bold text-lg my-2">{job.title}</h1>
-        <p className="text-sm text-gray-600">{job?.description}</p>
-      </div>
-
-      {/* Badges */}
-      <div className="flex items-center gap-2 mt-4">
-        <span className="px-2 py-1 border border-blue-700 text-blue-700 font-bold rounded-full">
-          {job.position} Positions
-        </span>
-        <span className="px-2 py-1 border border-[#F83002] text-[#F83002] font-bold rounded-full">
-          {job.jobType}
-        </span>
-        <span className="px-2 py-1 border border-[#7209b7] text-[#7209b7] font-bold rounded-full">
-          {job.salary} LPA
-        </span>
-      </div>
-
-      {/* Buttons */}
-      <div className="flex items-center gap-4 mt-4">
+      <div className="mt-4 grid grid-cols-2 gap-2">
         <button
           onClick={() => navigate(`/description/${job._id}`)}
-          className="px-4 py-2 border border-gray-400 rounded hover:bg-gray-100"
+          className="w-full rounded-md border border-slate-700 bg-slate-800 text-xs font-semibold text-slate-100 py-2 hover:bg-slate-700 transition"
         >
-          Details
+          View details
         </button>
-        <button className="px-4 py-2 bg-[#7209b7] text-white rounded hover:bg-purple-800">
-          Save For Later
+        <button
+          onClick={handleToggleSave}
+          className={`w-full rounded-md text-xs font-semibold py-2 transition ${
+            isSaved
+              ? "bg-purple-600 text-white hover:bg-purple-500"
+              : "bg-indigo-600 text-white hover:bg-indigo-500"
+          }`}
+        >
+          {isSaved ? "Saved" : "Save"}
         </button>
       </div>
     </div>
+  );
+};
+
+const Badge = ({ label, tone }) => {
+  const colors = {
+    indigo: "bg-indigo-600/20 border-indigo-500 text-indigo-100",
+    amber: "bg-amber-600/20 border-amber-500 text-amber-100",
+    emerald: "bg-emerald-600/20 border-emerald-500 text-emerald-100",
+    slate: "bg-slate-700/40 border-slate-600 text-slate-200",
+  };
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[10px] ${
+        colors[tone] || colors.slate
+      }`}
+    >
+      {label}
+    </span>
   );
 };
 

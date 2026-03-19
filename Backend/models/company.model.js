@@ -4,7 +4,6 @@ const companySchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    unique: true
   },
   description: {
     type: String,
@@ -23,5 +22,8 @@ const companySchema = new mongoose.Schema({
     ref: 'User',
     required: true
   }
-}, { timestamps: true })
+}, { timestamps: true });
+
+// Ensure company names are unique per recruiter (userId) only
+companySchema.index({ userId: 1, name: 1 }, { unique: true });
 export const Company = mongoose.model("Company", companySchema);

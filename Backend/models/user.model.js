@@ -19,14 +19,32 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-
-    
+    resetPasswordToken: {
+      type: String,
+    },
+    resetPasswordExpires: {
+      type: Date,
+    },
     role: {
       type: String,
       enum: ["Student", "Recruiter"],
       default: "Student",
       required: true,
+      index: true,
     },
+    experience: {
+      type: String,
+    },
+    location: {
+      type: String,
+      index: true,
+    },
+    savedJobs: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Job",
+      },
+    ],
     profile: {
       bio: {
         type: String,
@@ -35,7 +53,7 @@ const userSchema = new mongoose.Schema(
       resume: {
         type: String, // URL to resume file
       },
-      resumeOriginalname: {
+      resumeOriginalName: {
         type: String, // Original name of resume file
       },
       company: {

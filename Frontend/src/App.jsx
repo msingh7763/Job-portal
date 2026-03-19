@@ -1,20 +1,28 @@
-import React from 'react'
-import Navbar from "./components/components_lite/Navbar"
-import Login from "./components/authentication/Login"
-import Register from "./components/authentication/Register"
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import Home from "./components/components_lite/Home"
-import PrivacyPolicy from './components/components_lite/PrivacyPolicy';
-import TermsOfService from './components/components_lite/TermsOfService';
-import Jobs from './components/components_lite/Jobs';
-import Browse from './components/components_lite/Browse';
-import Profile from './components/components_lite/Profile';
-import Description from './components/components_lite/Description';
-import Creator from './components/components_lite/Creator';
+import React from "react";
+import Login from "./components/authentication/Login";
+import Register from "./components/authentication/Register";
+import ForgotPassword from "./components/authentication/ForgotPassword";
+import ProtectedRoute from "./components/authentication/ProtectedRoute";
 
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+
+import Home from "./components/components_lite/Home";
+import PrivacyPolicy from "./components/components_lite/PrivacyPolicy";
+import TermsOfService from "./components/components_lite/TermsOfService";
+import Jobs from "./components/components_lite/Jobs";
+import Browse from "./components/components_lite/Browse";
+import Profile from "./components/components_lite/Profile";
+import Description from "./components/components_lite/Description";
+import RecruiterJobs from "./components/components_lite/RecruiterJobs";
+import RecruiterCompanies from "./components/components_lite/RecruiterCompanies";
+import SavedJobs from "./components/components_lite/SavedJobs";
+import MyApplications from "./components/components_lite/MyApplications";
 
 const appRouter = createBrowserRouter([
-  { path: "/", element: <Home /> },
+  {
+    path: "/",
+    element: <Home />,
+  },
   {
     path: "/login",
     element: <Login />,
@@ -24,64 +32,77 @@ const appRouter = createBrowserRouter([
     element: <Register />,
   },
   {
+    path: "/forgot-password",
+    element: <ForgotPassword />,
+  },
+  {
     path: "/profile",
-    element: <Profile />
-
+    element: (
+      <ProtectedRoute>
+        <Profile />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/description",
-    element: <Description />
-
+    element: <Description />,
   },
   {
-    path: "/PrivacyPolicy",
-    element: <PrivacyPolicy />
+    path: "/description/:id",
+    element: <Description />,
   },
   {
-    path: "/TermsOfService",
-    element: <TermsOfService />
+    path: "/jobs",
+    element: <Jobs />,
   },
   {
-    path: "/Jobs",
-    element: <Jobs />
-
+    path: "/browse",
+    element: <Browse />,
   },
   {
-    path: "/Description/:id",
-    element: <Description />
-
+    path: "/saved",
+    element: (
+      <ProtectedRoute>
+        <SavedJobs />
+      </ProtectedRoute>
+    ),
   },
   {
-    path: "/Home",
-    element: <Home />
-
+    path: "/applications",
+    element: (
+      <ProtectedRoute>
+        <MyApplications />
+      </ProtectedRoute>
+    ),
   },
   {
-    path: "/Browse",
-    element: <Browse />
-
+    path: "/privacy-policy",
+    element: <PrivacyPolicy />,
+  },
+  {
+    path: "/terms-of-service",
+    element: <TermsOfService />,
   },
   {
     path: "/admin/companies",
-    element: <Home />
-
-
-
-
-  }, {
-    path: "/Creator",
-    element: <Creator />
-  }
-
+    element: (
+      <ProtectedRoute>
+        <RecruiterCompanies />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/jobs",
+    element: (
+      <ProtectedRoute>
+        <RecruiterJobs />
+      </ProtectedRoute>
+    ),
+  },
 ]);
 
 function App() {
-  return (
-    <div>
-      <RouterProvider router={appRouter}></RouterProvider>
-
-    </div>
-  )
+  return <RouterProvider router={appRouter} />;
 }
 
-export default App
+export default App;
