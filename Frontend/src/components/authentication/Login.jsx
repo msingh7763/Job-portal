@@ -2,6 +2,7 @@
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { Navigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { setUser } from "../../redux/authSlice";
 
 import React, { useState } from "react";
@@ -131,12 +132,12 @@ const Login = () => {
 
             {/* Forgot Password */}
             <p className="text-right text-sm">
-              <a
-                href="/forgot-password"
+              <Link
+                to="/forgot-password"
                 className="text-orange-500 hover:text-orange-400"
               >
                 Forgot password?
-              </a>
+              </Link>
             </p>
 
             {/* Role */}
@@ -184,12 +185,12 @@ const Login = () => {
             {/* Register */}
             <p className="text-center text-gray-400 text-sm mt-3">
               Don't have an account?{" "}
-              <a
-                href="/register"
+              <Link
+                to="/register"
                 className="text-orange-500 hover:text-orange-400 font-semibold"
               >
                 Register
-              </a>
+              </Link>
             </p>
           </form>
         </motion.div>

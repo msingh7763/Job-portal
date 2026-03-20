@@ -61,6 +61,7 @@ const EditProfileModal = ({ open, setOpen }) => {
       <div className="bg-gradient-to-br from-gray-950 via-slate-900 to-slate-800 text-white rounded-2xl w-full max-w-lg p-5 shadow-2xl relative border border-slate-700">
         {/* Close Button */}
         <button
+          type="button"
           onClick={() => setOpen(false)}
           className="absolute top-2 right-2 text-gray-300 hover:text-white transition"
         >

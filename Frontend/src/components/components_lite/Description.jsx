@@ -120,6 +120,7 @@ const Description = () => {
               </div>
             </div>
             <button
+              type="button"
               onClick={applyJobHandler}
               disabled={isApplied || applying}
               className={`mt-2 md:mt-0 px-6 py-2 rounded-lg font-semibold text-white text-sm sm:text-base ${

@@ -7,6 +7,14 @@ import crypto from "crypto";
 import { sendMail } from "../utils/mailer.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
+const isProduction = process.env.NODE_ENV === "production";
+const authCookieOptions = {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: isProduction ? "None" : "Strict",
+  path: "/",
+};
+
 /* ========================= REGISTER ========================= */
 
 export const register = asyncHandler(async (req, res, next) => {
@@ -67,10 +75,10 @@ export const register = asyncHandler(async (req, res, next) => {
 export const login = asyncHandler(async (req, res, next) => {
   const { email, password, role } = req.body;
 
-    if (!email || !password || !role) {
+    if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: "Email, password and role are required",
+        message: "Email and password are required",
       });
     }
 
@@ -92,10 +100,10 @@ export const login = asyncHandler(async (req, res, next) => {
       });
     }
 
-    if (user.role !== role) {
+    if (role && user.role !== role) {
       return res.status(403).json({
         success: false,
-        message: "Unauthorized role access",
+        message: `This account is registered as ${user.role}. Please select ${user.role} to continue.`,
       });
     }
 
@@ -117,10 +125,8 @@ export const login = asyncHandler(async (req, res, next) => {
 
     res
       .cookie("token", token, {
-        httpOnly: true,
+        ...authCookieOptions,
         maxAge: 24 * 60 * 60 * 1000,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "None" : "Strict",
       })
     .status(200)
     .json({
@@ -135,10 +141,9 @@ export const login = asyncHandler(async (req, res, next) => {
 export const logout = asyncHandler(async (req, res, next) => {
   res
       .cookie("token", "", {
-        httpOnly: true,
+        ...authCookieOptions,
         maxAge: 0,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "None" : "Strict",
+        expires: new Date(0),
       })
     .json({
       success: true,
@@ -207,7 +212,13 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
     user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
     await user.save();
 
-    const resetLink = `${process.env.FRONTEND_URL}/reset-password/${token}`;
+    const frontendBaseUrl =
+      process.env.FRONTEND_URL ||
+      process.env.CLIENT_URL ||
+      process.env.CORS_ORIGINS?.split(",")?.[0]?.trim() ||
+      "http://localhost:5173";
+
+    const resetLink = `${frontendBaseUrl.replace(/\/+$/, "")}/reset-password/${token}`;
 
     await sendMail({
       to: user.email,

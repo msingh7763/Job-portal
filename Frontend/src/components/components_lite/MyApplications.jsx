@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import Navbar from "./Navbar";
 import api from "@/utils/api";
 import { useSelector } from "react-redux";
@@ -95,12 +96,12 @@ const MyApplications = () => {
 
                   <div className="mt-4 flex items-center justify-between text-xs text-slate-400">
                     <span>Applied: {new Date(application.createdAt).toLocaleDateString()}</span>
-                    <a
-                      href={`/description/${job._id}`}
+                    <Link
+                      to={`/description/${job._id}`}
                       className="text-indigo-300 hover:text-indigo-200"
                     >
                       View job
-                    </a>
+                    </Link>
                   </div>
                 </div>
               );

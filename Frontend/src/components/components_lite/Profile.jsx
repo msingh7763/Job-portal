@@ -102,6 +102,7 @@ const Profile = () => {
                 </div>
 
                 <button
+                  type="button"
                   onClick={() => setOpen(true)}
                   className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-sm hover:scale-105 transition"
                 >

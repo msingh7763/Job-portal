@@ -4,11 +4,9 @@ import './index.css'
 import App from './App.jsx'
 import { Toaster } from 'sonner'
 import { Provider } from 'react-redux'  // <-- fix here
-import store from "./redux/store";
-import { persistStore } from "redux-persist";
+import store, { persistor } from "./redux/store";
 import { PersistGate } from 'redux-persist/integration/react';
 
-const persistor = persistStore(store);
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <Provider store={store}>

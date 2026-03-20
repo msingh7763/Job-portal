@@ -298,6 +298,7 @@ const RecruiterCompanies = () => {
                       <p className="text-sm text-slate-400">Update details and logo.</p>
                     </div>
                     <button
+                      type="button"
                       onClick={closeEditModal}
                       className="text-slate-400 hover:text-white"
                       aria-label="Close"
@@ -421,12 +422,14 @@ const RecruiterCompanies = () => {
 
                       <div className="mt-4 flex gap-2">
                         <button
+                          type="button"
                           onClick={() => openEditModal(company)}
                           className="flex-1 rounded-lg border border-indigo-500 text-indigo-100 px-3 py-2 text-xs hover:bg-indigo-500/20"
                         >
                           Edit
                         </button>
                         <button
+                          type="button"
                           onClick={() => handleDeleteCompany(company._id)}
                           disabled={deletingId === company._id}
                           className="flex-1 rounded-lg border border-rose-500 text-rose-200 px-3 py-2 text-xs hover:bg-rose-500/20 disabled:opacity-50"

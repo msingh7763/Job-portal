@@ -14,6 +14,7 @@ const Navbar = () => {
 
   const [open, setOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const menuRef = useRef();
 
   // Close dropdown when clicking outside
@@ -29,27 +30,24 @@ const Navbar = () => {
   }, []);
 
   const logoutHandler = async () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+
     try {
       const res = await api.post("/api/users/logout");
-      if (res && res.data && res.data.success) {
-        // Clear user from Redux
-        dispatch(setUser(null));
-        
-        // Clear persisted state from localStorage
-        await persistor.purge();
-        
-        // Navigate to home
-        navigate("/");
-        
-        // Show success message
-        toast.success(res.data.message);
-      } else {
+      if (!res?.data?.success) {
         console.error("Error logging out:", res.data);
-        toast.error(res.data?.message || "Logout failed");
       }
     } catch (error) {
       console.error("Axios error:", error);
-      toast.error("Error logging out. Please try again.");
+    } finally {
+      dispatch(setUser(null));
+      await persistor.purge();
+      setOpen(false);
+      setMobileMenuOpen(false);
+      navigate("/");
+      toast.success("Logged out successfully");
+      setIsLoggingOut(false);
     }
   };
 
@@ -198,12 +196,12 @@ const Navbar = () => {
           {!user ? (
             <>
               <Link to="/login">
-                <button className="btn-secondary">
+                <button type="button" className="btn-secondary">
                   Login
                 </button>
               </Link>
               <Link to="/register">
-                <button className="btn-primary">
+                <button type="button" className="btn-primary">
                   Sign up
                 </button>
               </Link>
@@ -211,11 +209,13 @@ const Navbar = () => {
           ) : (
             <>
               <button
+                type="button"
                 onClick={logoutHandler}
+                disabled={isLoggingOut}
                 className="btn-secondary px-3 py-1.5 text-sm font-medium"
                 title="Logout"
               >
-                Logout
+                {isLoggingOut ? "Logging out..." : "Logout"}
               </button>
               <div className="relative" ref={menuRef}>
                 <div
@@ -259,11 +259,13 @@ const Navbar = () => {
                   </Link>
 
                   <button
+                    type="button"
                     onClick={logoutHandler}
+                    disabled={isLoggingOut}
                     className="flex items-center gap-2 text-red-400 hover:text-red-300 py-2 w-full text-left"
                   >
                     <LogOut className="w-4 h-4" />
-                    <span>Logout</span>
+                    <span>{isLoggingOut ? "Logging out..." : "Logout"}</span>
                   </button>
                 </div>
               )}
@@ -410,13 +412,15 @@ const Navbar = () => {
             </div>
           ) : (
             <button
+              type="button"
               onClick={() => {
                 logoutHandler();
                 setMobileMenuOpen(false);
               }}
+              disabled={isLoggingOut}
               className="w-full rounded-lg bg-red-500 text-white px-3 py-2 text-sm"
             >
-              Logout
+              {isLoggingOut ? "Logging out..." : "Logout"}
             </button>
           )}
         </div>

@@ -87,6 +87,7 @@ router.post(
     .withMessage("Password is required"),
 
   body("role")
+    .optional()
     .isIn(["Student", "Recruiter"])
     .withMessage("Role must be Student or Recruiter"),
 

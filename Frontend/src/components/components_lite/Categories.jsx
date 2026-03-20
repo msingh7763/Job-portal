@@ -26,7 +26,7 @@ const Categories = () => {
 
   const searchJobHandler = (query) => {
     dispatch(setSearchedQuery(query));
-    navigate("/Browse");
+    navigate("/browse");
   };
 
   return (
@@ -46,6 +46,7 @@ const Categories = () => {
             {categories.map((category, index) => (
               <button
                 key={index}
+                type="button"
                 onClick={() => searchJobHandler(category)}
                 className="flex-shrink-0 px-4 py-2 rounded-full bg-slate-800/80 text-slate-200 hover:bg-purple-600 hover:text-white border border-slate-700/80 hover:border-purple-400 text-xs sm:text-sm font-medium shadow-sm transition-colors"
               >

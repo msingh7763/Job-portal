@@ -69,6 +69,7 @@ const Job1 = ({ job }) => {
         </div>
 
         <button
+          type="button"
           onClick={handleToggleSave}
           aria-label={isSaved ? "Unsave job" : "Save job"}
           className={`flex items-center justify-center w-10 h-10 rounded-full border transition ${
@@ -110,12 +111,14 @@ const Job1 = ({ job }) => {
 
       <div className="mt-4 grid grid-cols-2 gap-2">
         <button
+          type="button"
           onClick={() => navigate(`/description/${job._id}`)}
           className="w-full rounded-md border border-slate-700 bg-slate-800 text-xs font-semibold text-slate-100 py-2 hover:bg-slate-700 transition"
         >
           View details
         </button>
         <button
+          type="button"
           onClick={handleToggleSave}
           className={`w-full rounded-md text-xs font-semibold py-2 transition ${
             isSaved

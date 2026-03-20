@@ -24,7 +24,7 @@ const initialForm = {
   location: "",
   jobType: "",
   experience: "",
-  position: "",
+  position: "1",
   companyId: "",
 };
 
@@ -130,8 +130,13 @@ const RecruiterJobs = () => {
       const res = await api.get("/api/company/get");
       if (res.data?.success) {
         setCompanies(res.data.companies || []);
-        if (res.data.companies?.length && !form.companyId) {
-          setForm((prev) => ({ ...prev, companyId: res.data.companies[0]._id }));
+        if (res.data.companies?.length) {
+          const firstCompanyId = res.data.companies[0]._id;
+          setForm((prev) => ({
+            ...prev,
+            companyId: prev.companyId || firstCompanyId,
+            position: prev.position || "1",
+          }));
         }
       }
     } catch (err) {
@@ -173,12 +178,52 @@ const RecruiterJobs = () => {
 
     setForm((prev) => ({
       ...prev,
-      [name]: name === "position" ? Number(value) || 1 : value,
+      [name]: value,
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!form.title.trim()) {
+      toast.error("Job title is required.");
+      return;
+    }
+
+    if (!form.description.trim()) {
+      toast.error("Job description is required.");
+      return;
+    }
+
+    if (!form.requirements.trim()) {
+      toast.error("Requirements are required.");
+      return;
+    }
+
+    if (!form.salary.trim()) {
+      toast.error("Salary is required.");
+      return;
+    }
+
+    if (!form.location.trim()) {
+      toast.error("Location is required.");
+      return;
+    }
+
+    if (!form.jobType.trim()) {
+      toast.error("Job type is required.");
+      return;
+    }
+
+    if (!form.experience.trim()) {
+      toast.error("Experience is required.");
+      return;
+    }
+
+    if (!form.position || Number(form.position) < 1) {
+      toast.error("Open positions must be at least 1.");
+      return;
+    }
 
     if (!form.companyId) {
       toast.error("Please select a company before posting a job.");
@@ -210,9 +255,12 @@ const RecruiterJobs = () => {
 
       if (res.data?.status) {
         toast.success("Job posted successfully.");
-        setForm(initialForm);
-      setCompanyLogo(null);
-      setCompanyLogoPreview(null);
+        setForm({
+          ...initialForm,
+          companyId: companies[0]?._id || "",
+        });
+        setCompanyLogo(null);
+        setCompanyLogoPreview(null);
 
         dispatch(setAllJobs([res.data.job, ...allJobs]));
         await fetchJobs();
@@ -239,6 +287,7 @@ const RecruiterJobs = () => {
           </h1>
 
           <button
+            type="button"
             onClick={() => setShowForm(!showForm)}
             className="bg-indigo-600 px-4 py-2 rounded text-white"
           >
@@ -256,13 +305,20 @@ const RecruiterJobs = () => {
               </div>
               <div className="flex gap-2">
                 <button
+                  type="button"
                   onClick={() => setShowForm(false)}
                   className="rounded-lg border border-slate-700 bg-slate-900/50 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-800"
                 >
                   Close
                 </button>
                 <button
-                  onClick={() => setForm(initialForm)}
+                  type="button"
+                  onClick={() =>
+                    setForm({
+                      ...initialForm,
+                      companyId: companies[0]?._id || "",
+                    })
+                  }
                   className="rounded-lg border border-indigo-600 bg-indigo-600/10 px-4 py-2 text-sm font-semibold text-indigo-200 transition hover:bg-indigo-600/20"
                 >
                   Reset
@@ -465,6 +521,7 @@ const RecruiterJobs = () => {
 
                   <div className="mt-4 flex flex-wrap gap-2">
                     <button
+                      type="button"
                       onClick={() => openApplicantsModal(job)}
                       className="rounded-md bg-indigo-600 px-3 py-1 text-xs font-semibold text-white hover:bg-indigo-500"
                     >
@@ -491,6 +548,7 @@ const RecruiterJobs = () => {
                 )}
               </div>
               <button
+                type="button"
                 onClick={closeApplicantsModal}
                 className="rounded-full bg-slate-800 p-2 text-slate-300 hover:bg-slate-700 hover:text-white"
               >
@@ -568,6 +626,7 @@ const RecruiterJobs = () => {
 
                         <div className="mt-3 flex flex-wrap gap-2">
                           <button
+                            type="button"
                             disabled={isUpdating || status === "shortlisted"}
                             onClick={() => updateApplicantStatus(application._id, "shortlisted")}
                             className="rounded-md bg-amber-500 px-3 py-1 text-xs font-semibold text-slate-900 hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-50"
@@ -576,6 +635,7 @@ const RecruiterJobs = () => {
                           </button>
 
                           <button
+                            type="button"
                             disabled={isUpdating || status === "interview"}
                             onClick={() => updateApplicantStatus(application._id, "interview")}
                             className="rounded-md bg-emerald-500 px-3 py-1 text-xs font-semibold text-slate-900 hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
@@ -584,6 +644,7 @@ const RecruiterJobs = () => {
                           </button>
 
                           <button
+                            type="button"
                             disabled={isUpdating || status === "hired"}
                             onClick={() => updateApplicantStatus(application._id, "hired")}
                             className="rounded-md bg-emerald-600 px-3 py-1 text-xs font-semibold text-slate-900 hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
@@ -592,6 +653,7 @@ const RecruiterJobs = () => {
                           </button>
 
                           <button
+                            type="button"
                             disabled={isUpdating || status === "rejected"}
                             onClick={() => updateApplicantStatus(application._id, "rejected")}
                             className="rounded-md bg-rose-600 px-3 py-1 text-xs font-semibold text-white hover:bg-rose-500 disabled:cursor-not-allowed disabled:opacity-50"

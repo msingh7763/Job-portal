@@ -36,6 +36,10 @@ const appRouter = createBrowserRouter([
     element: <ForgotPassword />,
   },
   {
+    path: "/reset-password/:token",
+    element: <ForgotPassword />,
+  },
+  {
     path: "/profile",
     element: (
       <ProtectedRoute>

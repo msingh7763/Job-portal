@@ -1,22 +1,35 @@
 import axios from "axios";
 
 // Get API configuration from environment variables
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const DEFAULT_PROD_API_BASE_URL = "https://job-portal-3-q98e.onrender.com";
+const rawBaseUrl = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = (rawBaseUrl || "").trim();
 const API_TIMEOUT = import.meta.env.VITE_API_TIMEOUT || 10000; // Default 10 seconds
+const resolvedBaseURL = API_BASE_URL
+  ? API_BASE_URL
+  : import.meta.env.PROD
+    ? DEFAULT_PROD_API_BASE_URL
+    : "http://localhost:5001";
 
 // Log configuration on app start (development only)
 if (import.meta.env.DEV) {
   console.log("🔧 API Configuration:");
-  console.log(`   Base URL: ${API_BASE_URL || "http://localhost:5001"}`);
+  console.log(`   Base URL: ${resolvedBaseURL}`);
   console.log(`   Timeout: ${API_TIMEOUT}ms`);
 }
 
-if (!API_BASE_URL) {
+if (!API_BASE_URL && import.meta.env.PROD) {
+  console.warn(
+    `⚠️  VITE_API_BASE_URL not set. Using fallback ${DEFAULT_PROD_API_BASE_URL}`
+  );
+}
+
+if (!API_BASE_URL && import.meta.env.DEV) {
   console.warn("⚠️  VITE_API_BASE_URL not set. Using default http://localhost:5001");
 }
 
 const api = axios.create({
-  baseURL: API_BASE_URL || "http://localhost:5001",
+  baseURL: resolvedBaseURL,
   withCredentials: true, // Essential for sending cookies with cross-origin requests
   timeout: API_TIMEOUT, // Set timeout to avoid hanging requests
   headers: {
@@ -42,6 +55,19 @@ api.interceptors.request.use(
 // Response interceptor - handle all response scenarios
 api.interceptors.response.use(
   (response) => {
+    if (response?.data && typeof response.data === "object") {
+      const hasSuccess = typeof response.data.success === "boolean";
+      const hasStatus = typeof response.data.status === "boolean";
+
+      if (!hasSuccess && hasStatus) {
+        response.data.success = response.data.status;
+      }
+
+      if (!hasStatus && hasSuccess) {
+        response.data.status = response.data.success;
+      }
+    }
+
     if (import.meta.env.DEV) {
       console.log(`✅ [RESPONSE] ${response.status} ${response.config.url}`);
     }

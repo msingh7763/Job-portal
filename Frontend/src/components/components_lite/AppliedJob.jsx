@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 const AppliedJob = () => {
@@ -14,12 +15,12 @@ const AppliedJob = () => {
         <p className="max-w-md text-sm text-slate-400">
           You haven’t applied to any jobs yet. Once you do, your applications will show up here.
         </p>
-        <a
-          href="/jobs"
+        <Link
+          to="/jobs"
           className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-500 transition"
         >
           Browse jobs
-        </a>
+        </Link>
       </div>
     );
   }
