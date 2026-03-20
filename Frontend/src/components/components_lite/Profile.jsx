@@ -32,9 +32,11 @@ const getResumeLinks = (url) => {
       : baseUrl;
 
   const viewUrl = `${withExtension}${query}`;
-  const downloadUrl = viewUrl.includes("/upload/")
-    ? viewUrl.replace("/upload/", "/upload/fl_attachment/")
-    : viewUrl;
+  const downloadUrl = viewUrl.includes("/raw/upload/")
+    ? viewUrl
+    : viewUrl.includes("/upload/")
+      ? viewUrl.replace("/upload/", "/upload/fl_attachment/")
+      : viewUrl;
 
   return { viewUrl, downloadUrl };
 };
