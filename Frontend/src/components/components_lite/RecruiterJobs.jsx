@@ -613,7 +613,7 @@ const RecruiterJobs = () => {
                             )}
 
                             {(() => {
-                              const { viewUrl, downloadUrl, alternateUrl } = getResumeLinks(
+                              const { viewUrl, downloadUrl } = getResumeLinks(
                                 applicant.profile?.resume || application.resume
                               );
                               const resumeName = applicant.profile?.resumeOriginalName || "Resume";
@@ -636,16 +636,6 @@ const RecruiterJobs = () => {
                                   >
                                     Download resume
                                   </a>
-                                  {alternateUrl && alternateUrl !== viewUrl && (
-                                    <a
-                                      href={alternateUrl}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-xs font-semibold text-amber-200 hover:text-amber-100"
-                                    >
-                                      Try alternate link
-                                    </a>
-                                  )}
                                 </div>
                               );
                             })()}

@@ -243,17 +243,6 @@ const Profile = () => {
                         >
                           Download
                         </a>
-                        {getResumeLinks(user.profile.resume).alternateUrl !==
-                          getResumeLinks(user.profile.resume).viewUrl && (
-                          <a
-                            target="_blank"
-                            href={getResumeLinks(user.profile.resume).alternateUrl}
-                            rel="noreferrer"
-                            className="text-amber-400 hover:underline"
-                          >
-                            Try alternate link
-                          </a>
-                        )}
                       </div>
                     ) : (
                       <span className="text-slate-400 text-sm">
