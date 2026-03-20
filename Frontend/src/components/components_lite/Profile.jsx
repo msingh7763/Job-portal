@@ -14,12 +14,29 @@ import EditProfileModal from "./EditProfileModal";
 import useGetAppliedJobs from "../../hooks/useGetAllAppliedJobs.jsx";
 import api from "@/utils/api";
 
-const getResumeUrl = (url) => {
-  if (!url) return "";
-  if (/\.pdf(\?|$)/i.test(url) && url.includes("/image/upload/")) {
-    return url.replace("/image/upload/", "/raw/upload/");
+const getResumeLinks = (url) => {
+  if (!url) return { viewUrl: "", downloadUrl: "" };
+
+  let normalizedUrl = String(url).trim();
+  if (normalizedUrl.includes("/image/upload/")) {
+    normalizedUrl = normalizedUrl.replace("/image/upload/", "/raw/upload/");
   }
-  return url;
+
+  const parts = normalizedUrl.split("?");
+  const baseUrl = parts[0];
+  const query = parts[1] ? `?${parts[1]}` : "";
+  const hasExtension = /\.[a-z0-9]+$/i.test(baseUrl);
+  const withExtension =
+    !hasExtension && baseUrl.includes("/job-portal/resumes/")
+      ? `${baseUrl}.pdf`
+      : baseUrl;
+
+  const viewUrl = `${withExtension}${query}`;
+  const downloadUrl = viewUrl.includes("/upload/")
+    ? viewUrl.replace("/upload/", "/upload/fl_attachment/")
+    : viewUrl;
+
+  return { viewUrl, downloadUrl };
 };
 
 const Profile = () => {
@@ -218,16 +235,24 @@ const Profile = () => {
                   <div>
                     <h2 className="text-white font-semibold mb-2">Resume</h2>
                     {user?.profile?.resume ? (
-                      <a
-                        target="_blank"
-                        href={getResumeUrl(user.profile.resume)}
-                        rel="noreferrer"
-                        download={user.profile.resumeOriginalName || "resume.pdf"}
-                        className="text-purple-400 hover:underline text-sm"
-                      >
-                        Download{" "}
-                        {user.profile.resumeOriginalName || "resume.pdf"}
-                      </a>
+                      <div className="flex flex-wrap gap-3 text-sm">
+                        <a
+                          target="_blank"
+                          href={getResumeLinks(user.profile.resume).viewUrl}
+                          rel="noreferrer"
+                          className="text-purple-400 hover:underline"
+                        >
+                          View {user.profile.resumeOriginalName || "resume.pdf"}
+                        </a>
+                        <a
+                          target="_blank"
+                          href={getResumeLinks(user.profile.resume).downloadUrl}
+                          rel="noreferrer"
+                          className="text-emerald-400 hover:underline"
+                        >
+                          Download
+                        </a>
+                      </div>
                     ) : (
                       <span className="text-slate-400 text-sm">
                         No resume uploaded yet.

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import api from "@/utils/api";
 import { useSelector } from "react-redux";
+import { toast } from "sonner";
 
 const statusStyles = {
   applied: "bg-indigo-600 text-white",
@@ -15,6 +16,7 @@ const statusStyles = {
 
 const MyApplications = () => {
   const { user } = useSelector((store) => store.auth);
+  const navigate = useNavigate();
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -68,7 +70,14 @@ const MyApplications = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {applications.map((application) => {
-              const job = application.job || {};
+              const job =
+                application.job && typeof application.job === "object"
+                  ? application.job
+                  : {};
+              const jobId =
+                typeof application.job === "string"
+                  ? application.job
+                  : application.job?._id;
               const status = application.status || "applied";
               return (
                 <div
@@ -96,12 +105,23 @@ const MyApplications = () => {
 
                   <div className="mt-4 flex items-center justify-between text-xs text-slate-400">
                     <span>Applied: {new Date(application.createdAt).toLocaleDateString()}</span>
-                    <Link
-                      to={`/description/${job._id}`}
-                      className="text-indigo-300 hover:text-indigo-200"
-                    >
-                      View job
-                    </Link>
+                    {jobId ? (
+                      <button
+                        type="button"
+                        onClick={() => navigate(`/description/${jobId}`)}
+                        className="text-indigo-300 hover:text-indigo-200"
+                      >
+                        View job
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => toast.error("This job is no longer available")}
+                        className="text-slate-500 cursor-not-allowed"
+                      >
+                        Unavailable
+                      </button>
+                    )}
                   </div>
                 </div>
               );

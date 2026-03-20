@@ -16,12 +16,31 @@ const statusStyles = {
   rejected: "bg-rose-600 text-white",
 };
 
-const getResumeUrl = (url) => {
-  if (!url) return "";
-  if (/\.pdf(\?|$)/i.test(url) && url.includes("/image/upload/")) {
-    return url.replace("/image/upload/", "/raw/upload/");
+const getResumeLinks = (url) => {
+  if (!url) return { viewUrl: "", downloadUrl: "" };
+
+  let normalizedUrl = String(url).trim();
+  if (normalizedUrl.includes("/image/upload/")) {
+    normalizedUrl = normalizedUrl.replace("/image/upload/", "/raw/upload/");
   }
-  return url;
+
+  const parts = normalizedUrl.split("?");
+  const baseUrl = parts[0];
+  const query = parts[1] ? `?${parts[1]}` : "";
+
+  // Older uploads can miss extension in URL; resumes in this app are PDFs.
+  const hasExtension = /\.[a-z0-9]+$/i.test(baseUrl);
+  const withExtension =
+    !hasExtension && baseUrl.includes("/job-portal/resumes/")
+      ? `${baseUrl}.pdf`
+      : baseUrl;
+
+  const viewUrl = `${withExtension}${query}`;
+  const downloadUrl = viewUrl.includes("/upload/")
+    ? viewUrl.replace("/upload/", "/upload/fl_attachment/")
+    : viewUrl;
+
+  return { viewUrl, downloadUrl };
 };
 
 const initialForm = {
@@ -605,19 +624,28 @@ const RecruiterJobs = () => {
                             )}
 
                             {(() => {
-                              const resumeUrl = getResumeUrl(applicant.profile?.resume || application.resume);
+                              const { viewUrl, downloadUrl } = getResumeLinks(
+                                applicant.profile?.resume || application.resume
+                              );
                               const resumeName = applicant.profile?.resumeOriginalName || "Resume";
-                              if (!resumeUrl) return null;
+                              if (!viewUrl) return null;
                               return (
-                                <div className="mt-2">
+                                <div className="mt-2 flex gap-3">
                                   <a
-                                    href={resumeUrl}
+                                    href={viewUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    download={resumeName}
                                     className="text-xs font-semibold text-indigo-200 hover:text-indigo-100"
                                   >
                                     View resume
+                                  </a>
+                                  <a
+                                    href={downloadUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs font-semibold text-emerald-200 hover:text-emerald-100"
+                                  >
+                                    Download resume
                                   </a>
                                 </div>
                               );
