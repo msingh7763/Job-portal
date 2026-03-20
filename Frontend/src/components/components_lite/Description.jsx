@@ -12,6 +12,7 @@ const Description = () => {
   const dispatch = useDispatch();
   const { singleJob } = useSelector((store) => store.job);
   const { user } = useSelector((store) => store.auth);
+  const isRecruiter = user?.role === "Recruiter";
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -45,6 +46,11 @@ const Description = () => {
   }, [jobId, dispatch, user?._id]);
 
   const applyJobHandler = async () => {
+    if (isRecruiter) {
+      toast.error("Recruiters cannot apply for jobs.");
+      return;
+    }
+
     if (isApplied || applying) return;
     setApplying(true);
     try {
@@ -122,14 +128,20 @@ const Description = () => {
             <button
               type="button"
               onClick={applyJobHandler}
-              disabled={isApplied || applying}
+              disabled={isApplied || applying || isRecruiter}
               className={`mt-2 md:mt-0 px-6 py-2 rounded-lg font-semibold text-white text-sm sm:text-base ${
-                isApplied || applying
+                isApplied || applying || isRecruiter
                   ? "bg-slate-600 cursor-not-allowed"
                   : "bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500"
               }`}
             >
-              {isApplied ? "Already Applied" : applying ? "Applying..." : "Apply now"}
+              {isRecruiter
+                ? "Recruiter Account"
+                : isApplied
+                  ? "Already Applied"
+                  : applying
+                    ? "Applying..."
+                    : "Apply now"}
             </button>
           </div>
 

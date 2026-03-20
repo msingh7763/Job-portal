@@ -155,35 +155,68 @@ export const logout = asyncHandler(async (req, res, next) => {
 
 export const updateProfile = asyncHandler(async (req, res, next) => {
   const { fullname, email, phoneNumber, bio, skills } = req.body;
-    const userId = req.id;
+  const userId = req.id;
 
-    const user = await User.findById(userId);
+  const user = await User.findById(userId);
 
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found",
+    });
+  }
 
-    if (fullname) user.fullname = fullname;
-    if (email) user.email = email;
-    if (phoneNumber) user.phoneNumber = phoneNumber;
-    if (bio) user.profile.bio = bio;
-    if (skills) user.profile.skills = skills.split(",");
+  if (fullname) user.fullname = fullname;
+  if (email) user.email = email;
+  if (phoneNumber) user.phoneNumber = phoneNumber;
+  if (bio) user.profile.bio = bio;
+  if (skills) {
+    user.profile.skills = skills
+      .split(",")
+      .map((skill) => skill.trim())
+      .filter(Boolean);
+  }
 
-    if (req.file) {
-      const fileUri = getDataUri(req.file);
-      const upload = await cloudinary.uploader.upload(fileUri.content, {
-        folder: "job-portal/resumes",
-        resource_type: "auto",
-      });
+  const profilePhotoFile = req.files?.profilePhoto?.[0] || null;
+  const resumeFile = req.files?.resume?.[0] || null;
 
+  if (profilePhotoFile) {
+    const fileUri = getDataUri(profilePhotoFile);
+    const upload = await cloudinary.uploader.upload(fileUri.content, {
+      folder: "job-portal/profile-photos",
+      resource_type: "image",
+    });
+    user.profile.profilePhoto = upload.secure_url;
+  }
+
+  if (resumeFile) {
+    const fileUri = getDataUri(resumeFile);
+    const upload = await cloudinary.uploader.upload(fileUri.content, {
+      folder: "job-portal/resumes",
+      resource_type: "raw",
+    });
+    user.profile.resume = upload.secure_url;
+    user.profile.resumeOriginalName = resumeFile.originalname;
+  }
+
+  // Backward compatibility for old clients that still send "file".
+  if (!profilePhotoFile && !resumeFile && req.file) {
+    const fileUri = getDataUri(req.file);
+    const isImage = req.file.mimetype?.startsWith("image/");
+    const upload = await cloudinary.uploader.upload(fileUri.content, {
+      folder: isImage ? "job-portal/profile-photos" : "job-portal/resumes",
+      resource_type: isImage ? "image" : "raw",
+    });
+
+    if (isImage) {
+      user.profile.profilePhoto = upload.secure_url;
+    } else {
       user.profile.resume = upload.secure_url;
       user.profile.resumeOriginalName = req.file.originalname;
     }
+  }
 
-    await user.save();
+  await user.save();
 
   return res.status(200).json({
     success: true,
@@ -275,12 +308,16 @@ export const toggleSavedJob = asyncHandler(async (req, res, next) => {
   const userId = req.id;
   const { jobId } = req.body;
 
+  if (!jobId) {
+    return res.status(400).json({ success: false, message: "jobId is required" });
+  }
+
   const user = await User.findById(userId);
   if (!user) {
     return res.status(404).json({ success: false, message: "User not found" });
   }
 
-  const isSaved = user.savedJobs.includes(jobId);
+  const isSaved = user.savedJobs.some((id) => id.toString() === jobId);
   if (isSaved) {
     user.savedJobs = user.savedJobs.filter((id) => id.toString() !== jobId);
   } else {
@@ -292,6 +329,7 @@ export const toggleSavedJob = asyncHandler(async (req, res, next) => {
   return res.status(200).json({
     success: true,
     message: isSaved ? "Job removed from saved list" : "Job saved successfully",
+    savedJobs: user.savedJobs.map((id) => id.toString()),
   });
 });
 

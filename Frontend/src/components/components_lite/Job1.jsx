@@ -18,7 +18,10 @@ const Job1 = ({ job }) => {
 
   const isSaved = useMemo(() => {
     if (!user || !user.savedJobs) return false;
-    return user.savedJobs.some((id) => id === job._id);
+    return user.savedJobs.some((entry) => {
+      const savedId = typeof entry === "object" ? entry?._id : entry;
+      return String(savedId) === String(job._id);
+    });
   }, [user, job?._id]);
 
   const formattedMatch = typeof job.matchScore === "number" ? `${job.matchScore}%` : "—";
@@ -33,11 +36,17 @@ const Job1 = ({ job }) => {
       try {
         const res = await api.post("/api/users/saved/toggle", { jobId: job._id });
         if (res.data.success) {
+          const nextSavedJobs = Array.isArray(res.data.savedJobs)
+            ? res.data.savedJobs
+            : isSaved
+              ? (user.savedJobs || []).filter((id) => String(id?._id || id) !== String(job._id))
+              : [...(user.savedJobs || []), job._id];
+
           // merge savedJobs into auth.user
           dispatch(
             setUser({
               ...user,
-              savedJobs: res.data.savedJobs,
+              savedJobs: nextSavedJobs,
             })
           );
         }

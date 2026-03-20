@@ -16,6 +16,14 @@ const statusStyles = {
   rejected: "bg-rose-600 text-white",
 };
 
+const getResumeUrl = (url) => {
+  if (!url) return "";
+  if (/\.pdf(\?|$)/i.test(url) && url.includes("/image/upload/")) {
+    return url.replace("/image/upload/", "/raw/upload/");
+  }
+  return url;
+};
+
 const initialForm = {
   title: "",
   description: "",
@@ -597,7 +605,7 @@ const RecruiterJobs = () => {
                             )}
 
                             {(() => {
-                              const resumeUrl = applicant.profile?.resume || application.resume;
+                              const resumeUrl = getResumeUrl(applicant.profile?.resume || application.resume);
                               const resumeName = applicant.profile?.resumeOriginalName || "Resume";
                               if (!resumeUrl) return null;
                               return (

@@ -14,6 +14,14 @@ import EditProfileModal from "./EditProfileModal";
 import useGetAppliedJobs from "../../hooks/useGetAllAppliedJobs.jsx";
 import api from "@/utils/api";
 
+const getResumeUrl = (url) => {
+  if (!url) return "";
+  if (/\.pdf(\?|$)/i.test(url) && url.includes("/image/upload/")) {
+    return url.replace("/image/upload/", "/raw/upload/");
+  }
+  return url;
+};
+
 const Profile = () => {
   const [open, setOpen] = useState(false);
   const [companies, setCompanies] = useState([]);
@@ -212,7 +220,7 @@ const Profile = () => {
                     {user?.profile?.resume ? (
                       <a
                         target="_blank"
-                        href={user.profile.resume}
+                        href={getResumeUrl(user.profile.resume)}
                         rel="noreferrer"
                         download={user.profile.resumeOriginalName || "resume.pdf"}
                         className="text-purple-400 hover:underline text-sm"

@@ -16,15 +16,20 @@ const EditProfileModal = ({ open, setOpen }) => {
     phoneNumber: user?.phoneNumber || "",
     bio: user?.profile?.bio || "",
     skills: user?.profile?.skills?.join(", ") || "",
-    file: null,
+    profilePhoto: null,
+    resume: null,
   });
 
   const changeEventHandler = (e) => {
     setInput({ ...input, [e.target.name]: e.target.value });
   };
 
-  const handleFileChange = (e) => {
-    setInput({ ...input, file: e.target.files?.[0] });
+  const handleProfilePhotoChange = (e) => {
+    setInput({ ...input, profilePhoto: e.target.files?.[0] || null });
+  };
+
+  const handleResumeChange = (e) => {
+    setInput({ ...input, resume: e.target.files?.[0] || null });
   };
 
   const submitHandler = async (e) => {
@@ -35,7 +40,8 @@ const EditProfileModal = ({ open, setOpen }) => {
     formData.append("phoneNumber", input.phoneNumber);
     formData.append("bio", input.bio);
     formData.append("skills", input.skills);
-    if (input.file) formData.append("file", input.file);
+    if (input.profilePhoto) formData.append("profilePhoto", input.profilePhoto);
+    if (input.resume) formData.append("resume", input.resume);
 
     try {
       setLoading(true);
@@ -114,6 +120,19 @@ const EditProfileModal = ({ open, setOpen }) => {
                 onChange={changeEventHandler}
               />
 
+              {/* Profile Photo Upload */}
+              <div>
+                <label className="block text-sm font-medium mb-1 text-gray-300">
+                  Profile photo (image)
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleProfilePhotoChange}
+                  className="w-full text-sm border border-gray-500 rounded-md bg-gray-800 p-2 focus:ring-2 focus:ring-blue-500 outline-none transition"
+                />
+              </div>
+
               {/* Resume Upload */}
               <div>
                 <label className="block text-sm font-medium mb-1 text-gray-300">
@@ -122,9 +141,12 @@ const EditProfileModal = ({ open, setOpen }) => {
                 <input
                   type="file"
                   accept="application/pdf"
-                  onChange={handleFileChange}
+                  onChange={handleResumeChange}
                   className="w-full text-sm border border-gray-500 rounded-md bg-gray-800 p-2 focus:ring-2 focus:ring-blue-500 outline-none transition"
                 />
+                <p className="mt-1 text-xs text-gray-400">
+                  You can update profile photo and resume independently.
+                </p>
               </div>
             </>
           )}

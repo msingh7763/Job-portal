@@ -6,7 +6,9 @@ import { applyJob, getApplicants, getAppliedJobs, updateStatus } from "../contro
 
 const router = express.Router();
 
-router.route("/apply/:id").post(authenticateToken, applyJob);
+router
+  .route("/apply/:id")
+  .post(authenticateToken, authorizeRoles("Student"), applyJob);
 router.route("/get").get(authenticateToken, getAppliedJobs);
 router
   .route("/:id/applicants")
