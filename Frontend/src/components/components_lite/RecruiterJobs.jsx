@@ -19,30 +19,17 @@ const statusStyles = {
 const getResumeLinks = (url) => {
   if (!url) return { viewUrl: "", downloadUrl: "" };
 
-  let normalizedUrl = String(url).trim();
-  if (normalizedUrl.includes("/image/upload/")) {
-    normalizedUrl = normalizedUrl.replace("/image/upload/", "/raw/upload/");
-  }
+  const storedUrl = String(url).trim();
+  const alternateUrl = storedUrl.includes("/image/upload/")
+    ? storedUrl.replace("/image/upload/", "/raw/upload/")
+    : storedUrl.includes("/raw/upload/")
+      ? storedUrl.replace("/raw/upload/", "/image/upload/")
+      : storedUrl;
 
-  const parts = normalizedUrl.split("?");
-  const baseUrl = parts[0];
-  const query = parts[1] ? `?${parts[1]}` : "";
+  const viewUrl = storedUrl;
+  const downloadUrl = storedUrl;
 
-  // Older uploads can miss extension in URL; resumes in this app are PDFs.
-  const hasExtension = /\.[a-z0-9]+$/i.test(baseUrl);
-  const withExtension =
-    !hasExtension && baseUrl.includes("/job-portal/resumes/")
-      ? `${baseUrl}.pdf`
-      : baseUrl;
-
-  const viewUrl = `${withExtension}${query}`;
-  const downloadUrl = viewUrl.includes("/raw/upload/")
-    ? viewUrl
-    : viewUrl.includes("/upload/")
-      ? viewUrl.replace("/upload/", "/upload/fl_attachment/")
-      : viewUrl;
-
-  return { viewUrl, downloadUrl };
+  return { viewUrl, downloadUrl, alternateUrl };
 };
 
 const initialForm = {
@@ -626,7 +613,7 @@ const RecruiterJobs = () => {
                             )}
 
                             {(() => {
-                              const { viewUrl, downloadUrl } = getResumeLinks(
+                              const { viewUrl, downloadUrl, alternateUrl } = getResumeLinks(
                                 applicant.profile?.resume || application.resume
                               );
                               const resumeName = applicant.profile?.resumeOriginalName || "Resume";
@@ -649,6 +636,16 @@ const RecruiterJobs = () => {
                                   >
                                     Download resume
                                   </a>
+                                  {alternateUrl && alternateUrl !== viewUrl && (
+                                    <a
+                                      href={alternateUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-xs font-semibold text-amber-200 hover:text-amber-100"
+                                    >
+                                      Try alternate link
+                                    </a>
+                                  )}
                                 </div>
                               );
                             })()}

@@ -17,28 +17,17 @@ import api from "@/utils/api";
 const getResumeLinks = (url) => {
   if (!url) return { viewUrl: "", downloadUrl: "" };
 
-  let normalizedUrl = String(url).trim();
-  if (normalizedUrl.includes("/image/upload/")) {
-    normalizedUrl = normalizedUrl.replace("/image/upload/", "/raw/upload/");
-  }
+  const storedUrl = String(url).trim();
+  const alternateUrl = storedUrl.includes("/image/upload/")
+    ? storedUrl.replace("/image/upload/", "/raw/upload/")
+    : storedUrl.includes("/raw/upload/")
+      ? storedUrl.replace("/raw/upload/", "/image/upload/")
+      : storedUrl;
 
-  const parts = normalizedUrl.split("?");
-  const baseUrl = parts[0];
-  const query = parts[1] ? `?${parts[1]}` : "";
-  const hasExtension = /\.[a-z0-9]+$/i.test(baseUrl);
-  const withExtension =
-    !hasExtension && baseUrl.includes("/job-portal/resumes/")
-      ? `${baseUrl}.pdf`
-      : baseUrl;
+  const viewUrl = storedUrl;
+  const downloadUrl = storedUrl;
 
-  const viewUrl = `${withExtension}${query}`;
-  const downloadUrl = viewUrl.includes("/raw/upload/")
-    ? viewUrl
-    : viewUrl.includes("/upload/")
-      ? viewUrl.replace("/upload/", "/upload/fl_attachment/")
-      : viewUrl;
-
-  return { viewUrl, downloadUrl };
+  return { viewUrl, downloadUrl, alternateUrl };
 };
 
 const Profile = () => {
@@ -254,6 +243,17 @@ const Profile = () => {
                         >
                           Download
                         </a>
+                        {getResumeLinks(user.profile.resume).alternateUrl !==
+                          getResumeLinks(user.profile.resume).viewUrl && (
+                          <a
+                            target="_blank"
+                            href={getResumeLinks(user.profile.resume).alternateUrl}
+                            rel="noreferrer"
+                            className="text-amber-400 hover:underline"
+                          >
+                            Try alternate link
+                          </a>
+                        )}
                       </div>
                     ) : (
                       <span className="text-slate-400 text-sm">
